@@ -1,0 +1,1252 @@
+import numpy as np
+import matplotlib
+matplotlib.use('nbagg')
+import matplotlib.pyplot as plt
+import pylab as pl
+fig= plt.figure()
+load = []
+index = []
+#index = np.arange(load_size + 1)
+
+
+def newLoad(load_size = 20, tsum_incomingload = 10000):
+    incoming_load = [0, tsum_incomingload] + list(np.random.randint(low=1, high=tsum_incomingload, size=load_size- 1))
+    incoming_load.sort()
+    incoming_load = [incoming_load[i + 1] -incoming_load[i] for i in range(load_size)]
+    return incoming_load
+CT= 2000
+c_A = 500
+pr_A =70
+c_B= 500
+pr_B =70
+c_C = 500
+pr_C = 70
+c_D = 500
+pr_D =70
+
+
+def runAlgorithm( algorithm,incoming_load, current_A,pr_for_A, current_B, pr_for_B,current_C, pr_for_C,current_D, pr_for_D, Print=False):
+
+    accepted_packets = []
+    rejected_packets = []
+    result_A = [current_A]
+    result_B = [current_B]
+    result_C = [current_C]
+    result_D = [current_D]
+
+    for L in incoming_load:
+
+        if algorithm == "N":
+            if current_A + L < CT:
+                current_A = max(0, current_A + L - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+
+            elif current_B + L < CT:
+                current_A = max(0, current_A - pr_for_A)
+                current_B = max(current_B + L - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+            elif current_C + L < CT:
+                current_A = max(0,current_A - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C + L - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+            elif current_D + L < CT:
+                current_A = max(0, current_A - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D + L - pr_for_D, 0)
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+            else:
+                rejected_packets.append(L)
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+
+
+        elif algorithm == "L":
+
+            UT = [{"Name": "A", "Currentload": current_A}, {"Name": "B", "Currentload": current_B}, {"Name": "C", "Currentload": current_C}, {"Name": "D", "Currentload": current_D}]
+            UT.sort(key=lambda x: x["Currentload"], reverse=False)
+            UT = [controller for controller in UT if controller["Currentload"] + L <= CT]
+
+            if len(UT) !=0:
+                if UT[0]['Name'] == "A":
+                    current_A = max(0, current_A + L - pr_for_A)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+                elif UT[0]['Name']=="B":
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(0, current_B + L - pr_for_B)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+
+                    accepted_packets.append(L)
+
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+                elif UT[0]['Name']=="C":
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(0, current_C + L - pr_for_C)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+                elif UT[0]['Name'] == "D":
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(0, current_C - pr_for_C)
+                    current_D = max(current_D + L - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+            else:
+                rejected_packets.append(L)
+
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+
+
+
+        elif algorithm == "M":
+
+            UT = [{"Name": "A", "Currentload": current_A}, {"Name": "B", "Currentload": current_B},{"Name": "C", "Currentload": current_C}, {"Name": "D", "Currentload": current_D}]
+
+            UT.sort(key=lambda x: x["Currentload"], reverse=True)
+
+            UT = [controller for controller in UT if controller["Currentload"] + L <= CT]
+
+            if len(UT) != 0:
+
+                if UT[0]['Name'] == "A":
+
+                    current_A = max(0, current_A + L - pr_for_A)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+                elif UT[0]['Name'] == "B":
+
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(0, current_B + L - pr_for_B)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+                elif UT[0]['Name'] == "C":
+
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(0, current_C + L - pr_for_C)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+                elif UT[0]['Name'] == "D":
+
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(0, current_C - pr_for_C)
+                    current_D = max(current_D + L - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+
+            else:
+
+                rejected_packets.append(L)
+
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+    if Print:
+        print()
+        print(algorithm)
+        print("incoming_load %s" % (incoming_load))
+        print("Incoming_load SUM:%s COUNT:%s %s"%(sum(incoming_load),len(incoming_load),incoming_load))
+        print("Controller A %s"%result_A)
+        print("Controller B %s"%result_B)
+        print("Controller C %s"%result_C)
+        print("Controller D %s"%result_D)
+        print("Rejected SUM:%s COUNT:%s %s"%(sum(rejected_packets),len(rejected_packets),rejected_packets))
+        print("Accepted SUM:%s COUNT:%s %s" % (sum(accepted_packets), len(accepted_packets), accepted_packets))
+
+    #plt.plot(index, result_A, color='orange', lw=2,marker="X",label = "Controller A")
+    #plt.plot(index, result_B, color='g', lw=2,marker="X",label = "Controller B")
+    #plt.plot(index, result_C, color='b', lw=2, marker="X",label = "Controller C")
+    #plt.plot(index, result_D, color='r', lw=2, marker="X",label = "Controller D")
+    #plt.xlabel('Timestep(s)', fontsize=14)
+    #plt.ylabel('Total Load(kbps)', fontsize=14)
+    #plt.title('Algoritm '+ algorithm, fontsize=14)
+    #plt.ylim(0, CT + 50)
+    #plt.legend()
+    #plt.show()
+    #fig.savefig('Algorithm')
+
+    return [sum(accepted_packets) / len(incoming_load),sum(rejected_packets), len(rejected_packets)]
+    
+    
+    
+    
+    
+    
+    def avgThroughput(samples = 1500, load_size = 20, tsum_incomingload = 10000):
+#def avgPacketloss(samples = 1500, load_size = 20, tsum_incomingload = 10000):
+    callt_A = []
+    callt_B = []
+    callt_C = []
+    callr_A = []
+    callr_B = []
+    callr_C = []
+    callrl_A = []
+    callrl_B = []
+    callrl_C = []
+
+    i = 1
+    while i <= samples:
+        incoming_load = newLoad(load_size,tsum_incomingload)
+        N = runAlgorithm("N",incoming_load, c_A, pr_A, c_B, pr_B, c_C, pr_C, c_D, pr_D) # returns three items sum of accepted packet, rejected, and lenght of rejected
+        L = runAlgorithm("L",incoming_load, c_A, pr_A, c_B, pr_B, c_C, pr_C, c_D, pr_D)
+        M = runAlgorithm("M",incoming_load, c_A, pr_A, c_B, pr_B, c_C, pr_C, c_D, pr_D)
+        callt_A.append(N[0])
+        callt_B.append(L[0])
+        callt_C.append(M[0])
+        callr_A.append(N[1])
+        callr_B.append(L[1])
+        callr_C.append(M[1])
+        callrl_A.append(N[2])
+        callrl_B.append(L[2])
+        callrl_C.append(M[2])
+
+        i += 1
+    NTResult = (sum (callt_A)) / samples
+    LTResult = (sum (callt_B)) / samples
+    MTResult = (sum (callt_C)) / samples
+    NRResult = (sum(callr_A)) / samples
+    LRResult = (sum(callr_B)) / samples
+    MRResult = (sum(callr_C)) / samples
+    NRLResult = (sum(callrl_A))/ samples
+    LRLResult = (sum(callrl_B)) / samples
+    MRLResult = (sum(callrl_C)) / samples
+
+    print("samples %s  load_size %s  tsum %s" % (samples,load_size,tsum_incomingload))
+
+    return [NTResult, LTResult, MTResult, NRResult, LRResult, MRResult, NRLResult, LRLResult, MRLResult]
+
+#---------------------------------------------
+
+
+fifteen = [ avgThroughput(tsum_incomingload=x*1000) for x in range(10,26) ]
+#fifteen = [ avgPacketloss(tsum_incomingload=x*1000) for x in range(10,26) ]
+#print(fifteen)
+
+NearestT = [ x[0] for x in fifteen]
+LeastLoadedT = [ x[1] for x in fifteen]
+MostAppropriateT= [ x[2] for x in fifteen]
+NearestR = [ x[3] for x in fifteen]
+LeastLoadedR = [ x[4] for x in fifteen]
+MostAppropriateR= [ x[5] for x in fifteen]
+NearestRLenght = [ x[6] for x in fifteen]
+LeastRLenght = [ x[7] for x in fifteen]
+MostAppropriateRLenght = [ x[8] for x in fifteen]
+
+
+
+import matplotlib.pyplot as plt
+#fig=plt.figure(figsize=(30, 30))
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import math as math
+from pylab import rcParams
+%matplotlib inline
+TotalLoad = [x*1000 for x in range(10, 26)]
+print(TotalLoad)
+print(NearestT)
+print(LeastLoadedT)
+print(MostAppropriateT)
+print(NearestR)
+print(LeastLoadedR)
+print(MostAppropriateR)
+print()
+print(NearestRLenght)
+print(LeastRLenght)
+print(MostAppropriateRLenght)
+%matplotlib inline
+import seaborn as sns, pandas as pd, numpy as np, matplotlib.pyplot as plt, time
+sns.set_color_codes()
+sns.set(rc={'figure.figsize':(9.8,7.9)})
+#plt.rcParams['figure.figsize'] =(10,8)
+sns.set_context('poster')
+plot_kwds = {'alpha' : 0.25, 's' : 80, 'linewidths':0}
+plt.plot(TotalLoad, NearestT, color='orange', lw=2,marker="X", label = "DALB[15]")
+plt.plot(TotalLoad, LeastLoadedT, color='g', lw=2,marker="X",label = "CAMD[16]")
+plt.plot(TotalLoad, MostAppropriateT, color='b', lw=2, marker="X", label = "ISMDA[Proposed]")
+#plt.savefig(r'Users/Oladipupo.Adekoya/clustering-test/Algorithm.png')
+plt.xlabel('Incoming_Load(kbps)', fontsize=18)
+plt.ylabel('Average Throughput(p/s)', fontsize=18)
+#plt.title('Average throughput comparison of different algorithms ', fontsize=18)
+plt.ylim(390, 450)
+plt.legend()
+plt.show()
+
+
+
+#plt.plot(TotalLoad, NearestR, color='orange', lw=2,marker="X", label = "DALB[5]")
+#plt.plot(TotalLoad, LeastLoadedR, color='g', lw=2,marker="X",label = "CAMD[6]")
+#plt.plot(TotalLoad, MostAppropriateR, color='b', lw=2, marker="X", label = "ISMDA[Proposed]")
+#plt.ylabel('Average PacketLoss(%)', fontsize=14)
+#plt.title('Average PacketLoss comparison of different algorithms ', fontsize=14)
+
+
+
+
+
+
+# Response Time Calculation #
+import matplotlib.pyplot as plt
+fig=plt.figure(figsize=(10, 10))
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import math as math
+from pylab import rcParams
+%matplotlib inline
+%matplotlib inline
+import seaborn as sns, pandas as pd, numpy as np, matplotlib.pyplot as plt, time
+sns.set_color_codes()
+sns.set(rc={'figure.figsize':(9.8,7.9)})
+#plt.rcParams['figure.figsize'] =(10,8)
+sns.set_context('poster')
+plot_kwds = {'alpha' : 0.25, 's' : 80, 'linewidths':0}
+
+rtt = 50;
+c_c = 15;
+c_s = 15;
+c_t = 15;
+t_app = 90;
+m = 128;
+k_tout = 60;
+p_len = 1460;
+w_size = 64;
+
+#Time = range(1,16)
+P_A = [1551.220, 2343.301, 3327.656, 4243.016, 5243.537, 6243.475, 7226.833, 8247.06, 9266.532, 10338.37, 11340.250, 12366.218, 13439.491, 14456.477, 15484.882, 16533.840]
+P_B = [2028.116, 2931.482, 3836.686, 4806.836, 5777.582, 6800.0, 7751.141, 8776.472, 9787.575, 10817.418, 11843.420, 12904.232, 13944.125, 14937.914, 16004.274, 17029.405]
+P_C = [1496.859, 2273.421, 3242.552, 4168.006, 5178.695, 6165.061, 7146.771, 8183.209, 9183.290, 10223.553, 11229.617, 12251.35, 13324.004, 14364.365, 15394.439, 16457.64]
+
+
+R_A = []
+R_B = []
+R_C = []
+
+
+def responsetime(P_A, rtt, c_c, c_s, c_t, t_app, m, k_tout, p_len, w_size):
+    R_A.append(2 * (rtt + c_c + c_t) + (rtt + (c_c + c_s) / 2) * (t_app - 2) / m + (rtt * P_A * (t_app - 2) / m + 1) +
+               (k_tout * t_app * (P_A / (1 - P_A)) + (rtt * (p_len / w_size))/(1 - math.sqrt(P_A))))
+
+
+for A in P_A:
+    responsetime(A, rtt, c_c, c_s, c_t, t_app, m, k_tout, p_len, w_size)
+
+
+def responsetime(P_B, rtt, c_c, c_s, c_t, t_app, m, k_tout, p_len, w_size):
+    R_B.append(2*(rtt + c_c + c_t) + (rtt + (c_c + c_s) / 2) * (t_app - 2) / m  + (rtt * P_B * (t_app - 2) / m + 1 ) +
+               (k_tout * t_app * (P_B / (1 - P_B)) + (rtt * (p_len / w_size))/(1 - math.sqrt(P_B))))
+for B in P_B:
+    responsetime(B, rtt, c_c, c_s, c_t, t_app, m, k_tout, p_len, w_size)
+
+
+def responsetime(P_C, rtt, c_c, c_s, c_t, t_app, m, k_tout, p_len, w_size):
+    R_C.append(2 * (rtt + c_c + c_t) + (rtt + (c_c + c_s) / 2) * (t_app - 2) / m + (rtt * P_C * (t_app - 2) / m + 1) +
+               (k_tout * t_app * (P_C / (1 - P_C)) + (rtt * (p_len / w_size)) / (1 - math.sqrt(P_C))))
+
+for C in P_C:
+    responsetime(C, rtt, c_c, c_s, c_t, t_app, m, k_tout, p_len, w_size)
+
+print(R_A)
+print(R_B)
+print(R_C)
+
+
+
+
+
+
+import matplotlib.pyplot as plt
+fig=plt.figure(figsize=(10, 10))
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import math as math
+from pylab import rcParams
+%matplotlib inline
+%matplotlib inline
+import seaborn as sns, pandas as pd, numpy as np, matplotlib.pyplot as plt, time
+sns.set_color_codes()
+sns.set(rc={'figure.figsize':(9.8,7.9)})
+#plt.rcParams['figure.figsize'] =(10,8)
+sns.set_context('poster')
+plot_kwds = {'alpha' : 0.25, 's' : 80, 'linewidths':0}
+
+
+P_A = [140640.3057225329, 175035.2694443682, 209409.65512195605, 243213.74742993718, 278285.0201888728, 313330.1687417231, 350175.3044117174, 384615.4924542742, 419883.64437062, 456777.8641728854, 491737.1446286216, 527088.917051248, 563147.1706875482]
+P_B = [160022.85880832592, 193393.9277178651, 228540.8913576137, 261237.35809139765, 296483.9903917542, 331241.3792570951, 366642.85871270194, 401912.21577158535, 438378.1138273784, 474124.85525350395, 508286.7102438499, 544943.1807529291, 580182.3591225394]
+P_C = [138061.65224073906, 172806.2117067285, 206714.06898622145, 240461.53106172365, 276090.0869502453, 310468.66499303526, 346228.40009491466, 380812.4247493812, 415935.0039262743, 452807.9517711816, 488570.76135258883, 523979.9095526993, 560527.7733398157]
+
+
+DT = (13000,14000, 15000,16000, 17000, 18000,19000,20000,21000, 22000, 23000,24000, 25000)
+plt.plot(DT, P_A, color='orange', lw=2,marker="X", label = "DALB[15]")
+plt.plot(DT, P_B, color='g', lw=2,marker="X", label = "CAMD[16]")
+plt.plot(DT, P_C, color='b', lw=2, marker="X", label = "ISMDA[Proposed]")
+plt.xlabel('Incoming_Load(kbps)', fontsize=18)
+plt.ylabel('Average ResponseTime(ms)', fontsize=18)
+#plt.title('Response Time comparison of different algorithms ', fontsize=18)
+plt.ylim(138000, 581000)
+plt.legend()
+plt.show()
+
+
+
+
+
+#Number of Migration space#
+import matplotlib.pyplot as plt
+fig=plt.figure(figsize=(10, 10))
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import math as math
+from pylab import rcParams
+%matplotlib inline
+%matplotlib inline
+import seaborn as sns, pandas as pd, numpy as np, matplotlib.pyplot as plt, time
+sns.set_color_codes()
+sns.set(rc={'figure.figsize':(9.8,7.9)})
+#plt.rcParams['figure.figsize'] =(10,8)
+sns.set_context('poster')
+plot_kwds = {'alpha' : 0.25, 's' : 80, 'linewidths':0}
+
+
+P_A = [2.42666, 2.91333, 3.332, 3.762, 4.13133, 4.47933, 4.852, 5.158, 5.47466, 5.75333, 6.064, 6.32866, 6.56933]
+P_B =[2.63066, 3.07933, 3.51933, 3.916, 4.28, 4.64866, 5.024, 5.328, 5.64933, 5.942, 6.20666, 6.44733, 6.716]
+P_C = [2.39866, 2.83266, 3.28466, 3.69466, 4.06133, 4.414, 4.802, 5.082, 5.40533, 5.67866, 5.994, 6.25333, 6.50066]
+
+
+DT = [13000,14000, 15000,16000, 17000, 18000,19000,20000,21000, 22000, 23000,24000, 25000]
+plt.plot(DT, P_A, color='orange', lw=2,marker="X", label = "DALB[15]")
+plt.plot(DT, P_B, color='g', lw=2,marker="X", label = "CAMD[16]")
+plt.plot(DT, P_C, color='b', lw=2, marker="X",label = "ISMDA[Proposed]")
+plt.xlabel('Incoming_Load (kbps)', fontsize=18)
+plt.ylabel('Average Number of migration', fontsize=18)
+#plt.title('Number of migration comparison of different algorithms ', fontsize=18)
+#plt.ylim(4000, 20000)
+plt.legend()
+plt.show()
+
+
+
+
+
+
+
+
+import numpy as np
+import matplotlib
+matplotlib.use('nbagg')
+import matplotlib.pyplot as plt
+import pylab as pl
+fig= plt.figure()
+load = []
+index = []
+#index = np.arange(load_size + 1)
+
+
+def newLoad(load_size = 20, tsum_incomingload = 10000):
+    incoming_load = [0, tsum_incomingload] + list(np.random.randint(low=1, high=tsum_incomingload, size=load_size- 1))
+    incoming_load.sort()
+    incoming_load = [incoming_load[i + 1] -incoming_load[i] for i in range(load_size)]
+    return incoming_load
+CT= 2000
+c_A = 500
+pr_A =70
+c_B= 500
+pr_B =70
+c_C = 500
+pr_C = 70
+c_D = 500
+pr_D =70
+
+
+def runAlgorithm( algorithm,incoming_load, current_A,pr_for_A, current_B, pr_for_B,current_C, pr_for_C,current_D, pr_for_D, Print=True):
+
+    accepted_packets = []
+    rejected_packets = []
+    result_A = [current_A]
+    result_B = [current_B]
+    result_C = [current_C]
+    result_D = [current_D]
+
+    for L in incoming_load:
+
+        if algorithm == "N":
+            if current_A + L < CT:
+                current_A = max(0, current_A + L - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+
+            elif current_B + L < CT:
+                current_A = max(0, current_A - pr_for_A)
+                current_B = max(current_B + L - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+            elif current_C + L < CT:
+                current_A = max(0,current_A - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C + L - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+            elif current_D + L < CT:
+                current_A = max(0, current_A - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D + L - pr_for_D, 0)
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+            else:
+                rejected_packets.append(L)
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+
+
+        elif algorithm == "L":
+
+            UT = [{"Name": "A", "Currentload": current_A}, {"Name": "B", "Currentload": current_B}, {"Name": "C", "Currentload": current_C}, {"Name": "D", "Currentload": current_D}]
+            UT.sort(key=lambda x: x["Currentload"], reverse=False)
+            UT = [controller for controller in UT if controller["Currentload"] + L <= CT]
+
+            if len(UT) !=0:
+                if UT[0]['Name'] == "A":
+                    current_A = max(0, current_A + L - pr_for_A)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+                elif UT[0]['Name']=="B":
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(0, current_B + L - pr_for_B)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+
+                    accepted_packets.append(L)
+
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+                elif UT[0]['Name']=="C":
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(0, current_C + L - pr_for_C)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+                elif UT[0]['Name'] == "D":
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(0, current_C - pr_for_C)
+                    current_D = max(current_D + L - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+            else:
+                rejected_packets.append(L)
+
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+
+
+
+        elif algorithm == "M":
+
+            UT = [{"Name": "A", "Currentload": current_A}, {"Name": "B", "Currentload": current_B},{"Name": "C", "Currentload": current_C}, {"Name": "D", "Currentload": current_D}]
+
+            UT.sort(key=lambda x: x["Currentload"], reverse=True)
+
+            UT = [controller for controller in UT if controller["Currentload"] + L <= CT]
+
+            if len(UT) != 0:
+
+                if UT[0]['Name'] == "A":
+
+                    current_A = max(0, current_A + L - pr_for_A)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+                elif UT[0]['Name'] == "B":
+
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(0, current_B + L - pr_for_B)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+                elif UT[0]['Name'] == "C":
+
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(0, current_C + L - pr_for_C)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+                elif UT[0]['Name'] == "D":
+
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(0, current_C - pr_for_C)
+                    current_D = max(current_D + L - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+
+
+            else:
+
+                rejected_packets.append(L)
+
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+    if Print:
+        print()
+        print(algorithm)
+        print("incoming_load %s" % (incoming_load))
+        print("Incoming_load SUM:%s COUNT:%s %s"%(sum(incoming_load),len(incoming_load),incoming_load))
+        print("Controller A %s"%result_A)
+        print("Controller B %s"%result_B)
+        print("Controller C %s"%result_C)
+        print("Controller D %s"%result_D)
+        print("Rejected SUM:%s COUNT:%s %s"%(sum(rejected_packets),len(rejected_packets),rejected_packets))
+        print("Accepted SUM:%s COUNT:%s %s" % (sum(accepted_packets), len(accepted_packets), accepted_packets))
+
+    plt.plot(index, result_A, color='orange', lw=2,marker="X",label = "Controller A")
+    plt.plot(index, result_B, color='g', lw=2,marker="X",label = "Controller B")
+    plt.plot(index, result_C, color='b', lw=2, marker="X",label = "Controller C")
+    plt.plot(index, result_D, color='r', lw=2, marker="X",label = "Controller D")
+    plt.xlabel('Timestep(s)', fontsize=18)
+    plt.ylabel('Total Load(kbps)', fontsize=18)
+    plt.title('Algoritm '+ algorithm, fontsize=18)
+    plt.ylim(0, CT + 50)
+    plt.legend()
+    plt.show()
+    fig.savefig('Algorithm')
+
+    return [sum(accepted_packets) / len(incoming_load),sum(rejected_packets), len(rejected_packets)]
+    
+    
+    
+    
+    
+    
+    
+    import matplotlib.pyplot as plt
+#fig=plt.figure(figsize=(30, 30))
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import math as math
+from pylab import rcParams
+%matplotlib inline
+TotalLoad = [x*1000 for x in range(10, 26)]
+print(TotalLoad)
+print(NearestT)
+print(LeastLoadedT)
+print(MostAppropriateT)
+print(NearestR)
+print(LeastLoadedR)
+print(MostAppropriateR)
+print()
+print(NearestRLenght)
+print(LeastRLenght)
+print(MostAppropriateRLenght)
+%matplotlib inline
+import seaborn as sns, pandas as pd, numpy as np, matplotlib.pyplot as plt, time
+sns.set_color_codes()
+sns.set(rc={'figure.figsize':(9.8,7.9)})
+#plt.rcParams['figure.figsize'] =(10,8)
+sns.set_context('poster')
+plot_kwds = {'alpha' : 0.25, 's' : 80, 'linewidths':0}
+plt.plot(TotalLoad, NearestT, color='orange', lw=2,marker="X", label = "DALB[15]")
+plt.plot(TotalLoad, LeastLoadedT, color='g', lw=2,marker="X",label = "CAMD[16]")
+plt.plot(TotalLoad, MostAppropriateT, color='b', lw=2, marker="X", label = "ISMDA[Proposed]")
+plt.xlabel('Incoming_Load(kbps)', fontsize=18)
+plt.ylabel('Average Throughput(p/s)', fontsize=18)
+#plt.title('Average throughput comparison of different algorithms ', fontsize=18)
+plt.ylim(390, 450)
+plt.legend()
+plt.show()
+fig.savefig('Algorithm')
+#plt.plot(TotalLoad, NearestR, color='orange', lw=2,marker="X", label = "DALB[5]")
+#plt.plot(TotalLoad, LeastLoadedR, color='g', lw=2,marker="X",label = "CAMD[6]")
+#plt.plot(TotalLoad, MostAppropriateR, color='b', lw=2, marker="X", label = "ISMDA[Proposed]")
+#plt.ylabel('Average PacketLoss(%)', fontsize=14)
+#plt.title('Average PacketLoss comparison of different algorithms ', fontsize=14)
+
+
+
+
+
+
+
+
+#WEIGHING LOAD OF EACH ALGORITHM ACCEPTANCE#
+   
+load_size = 20
+load = []
+
+index = np.arange(load_size+1)
+incoming_load = [0, 20000] + list(np.random.randint(low=1, high=20000, size=load_size- 1))
+incoming_load.sort()
+
+incoming_load = [incoming_load[i + 1] -incoming_load[i] for i in range(load_size)]
+flow_count = 0
+while flow_count < 1:
+
+
+    incoming_load = [0, 20000] + list(np.random.randint(low=1, high=20000, size=load_size - 1))
+
+    incoming_load.sort()
+
+    incoming_load = [incoming_load[i + 1] - incoming_load[i] for i in range(load_size)]
+    bl = any(i > 20000 for i in incoming_load)
+
+    if bl is False:
+
+        load.append(incoming_load)
+        flow_count = flow_count + 1
+        
+import matplotlib.pyplot as plt
+fig=plt.figure(figsize=(10, 10))
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import math as math
+from pylab import rcParams
+%matplotlib inline
+#sns.set(rc={'figure.figsize':(15,12)})
+%matplotlib inline
+import seaborn as sns, pandas as pd, numpy as np, matplotlib.pyplot as plt, time
+sns.set_color_codes()
+sns.set(rc={'figure.figsize':(9.8,7.9)})
+#plt.rcParams['figure.figsize'] =(10.6,7.6)
+sns.set_context('poster')
+plot_kwds = {'alpha' : 0.25, 's' : 80, 'linewidths':0}        
+
+CT= 2000
+c_A = 500
+pr_A =70
+c_B= 500
+pr_B =70
+c_C = 500
+pr_C = 70
+c_D = 500
+pr_D =70
+
+
+def f(algorithm, current_A, pr_for_A, current_B, pr_for_B,current_C, pr_for_C,current_D, pr_for_D):
+
+    print()
+    print(algorithm)
+
+    accepted_packets = []
+    rejected_packets = []
+    result_A = [current_A]
+    result_B = [current_B]
+    result_C = [current_C]
+    result_D = [current_D]
+
+    for L in incoming_load:
+        if algorithm == "N":
+            if current_A + L < CT:
+                current_A = max(0, current_A + L - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+            elif current_B + L < CT:
+                current_A = max(0, current_A - pr_for_A)
+                current_B = max(current_B + L - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+            elif current_C + L < CT:
+                current_A = max(0, current_A - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C + L - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+            elif current_D + L < CT:
+                current_A = max(0, current_A - pr_for_A)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D + L - pr_for_D, 0)
+                accepted_packets.append(L)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+            else:
+                rejected_packets.append(L)
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+
+        elif algorithm == "L":
+            UT = [{"Name": "A", "Currentload": current_A}, {"Name": "B", "Currentload": current_B}, {"Name": "C", "Currentload": current_C}, {"Name": "D", "Currentload": current_D} ]
+            UT.sort(key=lambda x: x["Currentload"], reverse=False)
+            UT = [controller for controller in UT if controller["Currentload"] + L <= CT]
+
+            if len(UT) != 0:
+                if UT[0]['Name'] == "A":
+                    current_A = max(0, current_A + L - pr_for_A)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+                elif UT[0]['Name'] == "B":
+                    current_B = max(0, current_B + L - pr_for_B)
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+                elif UT[0]['Name'] == "C":
+                    current_C = max(0, current_C + L - pr_for_C)
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+                elif UT[0]['Name'] == "D":
+                    current_C = max(0, current_C - pr_for_C)
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_D = max(current_D + L - pr_for_D, 0)
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+            else:
+                rejected_packets.append(L)
+
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+
+
+    
+
+        elif algorithm == "M":
+            UT = [{"Name": "A", "Currentload": current_A}, {"Name": "B", "Currentload": current_B},{"Name": "C", "Currentload": current_C}, {"Name": "D", "Currentload": current_D}]
+            UT.sort(key=lambda x: x["Currentload"], reverse=True)
+            UT = [controller for controller in UT if controller["Currentload"] + L <= CT]
+
+            if len(UT) != 0:
+                if UT[0]['Name'] == "A":
+                    current_A = max(0, current_A + L - pr_for_A)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+                elif UT[0]['Name'] == "B":
+                    current_B = max(0, current_B + L - pr_for_B)
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_C = max(current_C - pr_for_C, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+                elif UT[0]['Name'] == "C":
+                    current_C = max(0, current_C + L - pr_for_C)
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_D = max(current_D - pr_for_D, 0)
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+                elif UT[0]['Name'] == "D":
+                    current_C = max(0, current_C - pr_for_C)
+                    current_A = max(current_A - pr_for_A, 0)
+                    current_B = max(current_B - pr_for_B, 0)
+                    current_D = max(current_D + L - pr_for_D, 0)
+                    accepted_packets.append(L)
+
+                    result_A.append(current_A)
+                    result_B.append(current_B)
+                    result_C.append(current_C)
+                    result_D.append(current_D)
+
+
+            else:
+                rejected_packets.append(L)
+
+                current_A = max(current_A - pr_for_A, 0)
+                current_B = max(current_B - pr_for_B, 0)
+                current_C = max(current_C - pr_for_C, 0)
+                current_D = max(current_D - pr_for_D, 0)
+
+                result_A.append(current_A)
+                result_B.append(current_B)
+                result_C.append(current_C)
+                result_D.append(current_D)
+
+    print("incoming_load %s" % (incoming_load))
+    print("Incoming_load SUM:%s COUNT:%s %s" % (sum(incoming_load), len(incoming_load), incoming_load))
+    print("Controller A %s" % result_A)
+    print("Controller B %s" % result_B)
+    print("Controller C %s" % result_C)
+    print("Controller D %s" % result_D)
+    print("Rejected SUM:%s COUNT:%s %s" % (sum(rejected_packets), len(rejected_packets), rejected_packets))
+    print("Accepted SUM:%s COUNT:%s %s" % (sum(accepted_packets), len(accepted_packets), accepted_packets))
+
+    print("incoming_load %s" % (incoming_load))
+    print("Incoming_load SUM:%s COUNT:%s %s"%(sum(incoming_load),len(incoming_load),incoming_load))
+    print("Controller A %s"%result_A)
+    print("Controller B %s"%result_B)
+    print("Controller C %s"%result_C)
+    print("Controller D %s" %result_D)
+    print("Rejected SUM:%s COUNT:%s %s"%(sum(rejected_packets),len(rejected_packets),rejected_packets))
+    print("Accepted SUM:%s COUNT:%s %s" % (sum(accepted_packets), len(accepted_packets), accepted_packets))
+
+
+    
+    plot_kwds = {'alpha' : 0.25, 's' : 80, 'linewidths':0}
+    plt.plot(index, result_A, color='orange', lw=2,marker="X", label = "Controller A")
+    plt.plot(index, result_B, color='g', lw=2,marker="X", label = "Controller B")
+    plt.plot(index, result_C, color='b', lw=2, marker="X", label = "Controller C")
+    plt.plot(index, result_D, color='r', lw=2, marker="X", label="Controller D")
+    plt.xlabel('Timestep(s)', fontsize=18)
+    plt.ylabel('Total Load(kbps)', fontsize=18)
+    #plt.title('Graph of ' + algorithm, fontsize=18)
+    plt.ylim(0, CT + 50)
+    plt.legend()
+    plt.show()
+    fig.savefig('Algorithm')
+    #f.savefig("foo.png", bbox_inches='tight', dpi=600)
+
+    return sum(accepted_packets) / load_size
+
+
+#---------------------------------------------
+
+x=f("N",c_A,pr_A,c_B,pr_B,c_C,pr_C, c_D,pr_D)
+#print(x)
+
+
+
+
